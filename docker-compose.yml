@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  project1:
+    container_name: project1
+    build: ./p1/
+#    volumes:
+#      - ./:/usr/src/app
+    ports:
+      - 5000:5000
+    networks:
+      - backend
+
+  example-prometheus:
+    image: prom/prometheus:latest
+    container_name: example-prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - backend
+  example-grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    user: "472"
+    container_name: example-grafana
+    depends_on:
+      - example-prometheus
+    ports:
+      - 4000:4000
+    volumes:
+      - ./datasource.yml:/etc/grafana/provisioning/datasource.yml
+    env_file:
+      - ./config.monitoring
+    networks:
+      - backend
+networks:
+  backend:
